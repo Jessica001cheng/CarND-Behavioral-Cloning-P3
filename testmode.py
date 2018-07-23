@@ -22,17 +22,28 @@ for line in lines:
     measurement = float(line[3])
     measurements.append(measurement)
 
-X_train=np.array(images)
-y_train=np.array(measurements)
+augmented_images, augmented_measurements = [],[]
+for image, measurement in zip(images, measurements):
+    augmented_images.append(image)
+    ## Horizontal flip image
+    augmented_images.append(cv2.flip(image,1))
+    augmented_measurements.append(measurement)
+    augmented_measurements.append(measurement* -1.0)
+
+X_train=np.array(augmented_images)
+y_train=np.array(augmented_measurements)
 print("X train shape", X_train.shape)
 print("y train shape", y_train.shape)
 
 from keras.models import Sequential
-from keras.layers import Flatten, Dense, Conv2D, Lambda, MaxPooling2D
+from keras.layers import Flatten, Dense, Conv2D, Lambda, MaxPooling2D, Cropping2D
 
 input_shape = (160,320,3)
 model = Sequential()
-model.add(Lambda(lambda x: x / 255.0 - 0.5, input_shape=input_shape))
+##cropping image
+model.add(Cropping2D(cropping=((50,20),(0,0)), input_shape=input_shape))
+## normalized image
+model.add(Lambda(lambda x: x / 255.0 - 0.5))
 ##add conv2D 5*5, 6 channel
 model.add(Conv2D(6, kernel_size=(5,5), padding='valid', activation='relu'))
 ## add MaxPooling2D layer, 2*2s
